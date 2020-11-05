@@ -1,0 +1,33 @@
+Keyboard {
+
+	inputOffset
+
+	OnkeyPress(event){
+		//foreach(tileLine) if (event.k == tileLine.key) if (overlaping(tileLine).size < 0) lose();
+	}
+
+	overlaping(tileLine){
+		//foreach(tiles) if (tile.pos > 10)
+	}
+
+	OnKeyDown(event) {
+		//foreach(tileLine) if (event.k == tileLine.key) if (overlaping(tileLine).size < 0) lose();
+	}
+
+	drawCanvas(){
+		drawTileLines() 
+		drawInputBlocks()
+		drawTiles();
+	}
+
+}
+
+tileLines {
+	keyTile : string
+
+	tiles {
+		size : float
+		pos : float
+	}
+	tileQueue [ tiles ]
+}
