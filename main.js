@@ -13,7 +13,8 @@ const config =
 
 document.addEventListener("DOMContentLoaded", main);
 
-function Keyboard(canvas, vecPos, vecSize, tileLines) {
+function Keyboard(canvas, vecPos, vecSize, tileLines) 
+{
 	if (canvas != null) {
 		this.canvas = canvas.getContext("2d");
 		this.enabled = true;
@@ -28,11 +29,13 @@ function Keyboard(canvas, vecPos, vecSize, tileLines) {
 	document.addEventListener("keyup", (event) => this.onKeyUp(event));
 }
 
-Keyboard.prototype.tick = function(){
+Keyboard.prototype.tick = function()
+{
 	this.draw();
 };
 
-Keyboard.prototype.draw = function(){
+Keyboard.prototype.draw = function()
+{
  	const canvas = this.canvas;
  	canvas.fillStyle = config.background;
  	canvas.fillRect(this.vecPos.x, this.vecPos.y, this.vecSize.x, this.vecSize.y);
@@ -72,14 +75,16 @@ Keyboard.prototype.draw = function(){
 	}
 };
 
-Keyboard.prototype.onKeyPress = function(event){
+Keyboard.prototype.onKeyPress = function(event)
+{
 	for (const tileLine of this.tileLines) {
 		if (event.key != tileLine.key) continue;
 		tileLine.isPressed = true;
 	}
 };
 
-Keyboard.prototype.onKeyUp = function(event){
+Keyboard.prototype.onKeyUp = function(event)
+{
 	for (const tileLine of this.tileLines) {
 		if (event.key != tileLine.key) continue;
 		tileLine.isPressed = false;
