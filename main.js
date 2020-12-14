@@ -8,8 +8,7 @@ const config =
 	keyFont: "12px Verdana",
 	keyColor: "#ffffff",
 	background: "#ffffff",
-	keyTilePercentSize: 11,
-	minTileSize: 30
+	keyTilePercentSize: 11
 }
 
 document.addEventListener("DOMContentLoaded", main);
@@ -54,14 +53,15 @@ Keyboard.prototype.draw = function()
 	const keyTileYPos = (this.vecPos.y + this.vecSize.y) - keyTileHeight;
 	const keyBaseline = "middle";
 
-	for(let i = 0, length1 = this.tileLines.length; i < length1; i++){
+	for(let i = 0, linesLength = this.tileLines.length; i < linesLength; i++){
 		const tileLine = this.tileLines[i];
 		const keyTileXPos = i * tileLineWidth;
 
 		//Draw tiles
 		canvas.fillStyle = tileLine.color;
 		for (let tile of tileLine.tiles) {
-			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - tile.l, tileLineWidth, tile.l);
+			const tileLength = tile.l * this.tickStep;
+			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - tileLength, tileLineWidth, tileLength);
 		}
 
 		//Draw keyTiles
@@ -69,16 +69,16 @@ Keyboard.prototype.draw = function()
 		canvas.fillRect(keyTileXPos, keyTileYPos, tileLineWidth, keyTileHeight);
 
 		//Draw keys
-		const key = tileLine.key.toUpperCase();
-		const keySize = canvas.measureText(key);
 		canvas.fillStyle = config.keyColor;
 		canvas.font = config.keyFont;
 		canvas.textBaseline = keyBaseline;
+		const key = tileLine.key.toUpperCase();
+		const keySize = canvas.measureText(key);
 		canvas.fillText(key,
 			(keyTileXPos + (tileLineWidth / 2)) - (keySize.width / 2),
 			(keyTileYPos + (keyTileHeight / 2)));
 
-		//Draw pressed tileLine
+		//Draw pressed keyTiles
 		if (tileLine.isPressed) {
 			const pressedGradient = canvas.createLinearGradient(keyTileXPos + tileLineWidth / 2, this.vecPos.y + this.vecSize.y / 2, keyTileXPos + tileLineWidth / 2, this.vecSize.y - keyTileHeight);
 			pressedGradient.addColorStop(0, config.background + "00");
@@ -86,6 +86,10 @@ Keyboard.prototype.draw = function()
 			canvas.fillStyle = pressedGradient;
 			canvas.fillRect(keyTileXPos, this.vecPos.y, tileLineWidth, this.vecSize.y - keyTileHeight);
 		}
+
+		//Draw missed and hit amount
+		canvas.font = "#eb4034";
+		//canvas.fillText()
 	}
 };
 
@@ -108,18 +112,19 @@ Keyboard.prototype.onKeyUp = function(event)
 
 Keyboard.prototype.songTick = function(music)
 {
-	for(let i = 0; i < this.playingMusic.length; i++){
-		for (const tile of this.playingMusic[i]) {
-			const bottomPos = tile.l - tile.t + this.tickCount;
-			const tilesList = this.tileLines[i].tiles;
-			if (tilesList.includes(tile)) {
-				//TODO: remove tile if too big if (bottomPos > this.vecSize.y) tilesList.remove()
+	for(let lineIndex = 0, linesLength = this.playingMusic.notes.length; lineIndex < linesLength; lineIndex++){
+		const tileLine = this.tileLines[lineIndex].tiles;
+		for(let tileIndex = 0, tilesLength = this.playingMusic.notes[lineIndex].length; tileIndex < tilesLength; tileIndex++){
+			const tile = this.playingMusic.notes[lineIndex][tileIndex];
+			const tilePos = this.tickCount - tile.t;
+			if (!tileLine.includes(tile)) {
+				if (tilePos < 0 || tilePos > this.vecSize.y) continue;
+				tileLine.push(tile);
+			}
+			if (tilePos > this.vecSize.y) {
+				switchRemove(tileLine, tileIndex);
 				continue;
 			}
-			
-			if (bottomPos < 0) continue;
-			tile.l = Math.max(tile.l, config.minTileSize);
-			tilesList.push(tile); 
 		}
 	}
 };
@@ -144,14 +149,16 @@ function main ()
 				{ color:"#f9690e", key:"l", isPressed:true, tiles: [] },
 			]);
 	const music = 
-	[
-		[ { t: 100, l: 0} ],
-		[ { t: 200, l: 0} ],
-		[ { t: 300, l: 0} ],
-		[ { t: 400, l: 0} ],
-		[ { t: 500, l: 0} ],
-		[ { t: 600, l: 0} ]
-	]
+	{
+		notes: [
+			[ { t: 100, l: 10} ],
+			[ { t: 200, l: 10} ],
+			[ { t: 300, l: 10} ],
+			[ { t: 400, l: 10} ],
+			[ { t: 500, l: 10} ],
+			[ { t: 600, l: 10} ]
+		]
+	}
 
 	keyboard.startSong(music);
 
@@ -161,4 +168,10 @@ function main ()
 function loop()
 {
 	keyboard.tick();
+}
+
+function switchRemove(arr, index) 
+{
+	this[index] = arr[arr.length - 1];
+	arr.pop();
 }
