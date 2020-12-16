@@ -151,18 +151,23 @@ function main ()
 	const music = 
 	{
 		notes: [
-			[ { t: 100, l: 10} ],
-			[ { t: 200, l: 10} ],
-			[ { t: 300, l: 10} ],
-			[ { t: 400, l: 10} ],
-			[ { t: 500, l: 10} ],
-			[ { t: 600, l: 10} ]
+			[ { t: 100, l: 6} ],
+			[ { t: 200, l: 6} ],
+			[ { t: 300, l: 6} ],
+			[ { t: 400, l: 6} ],
+			[ { t: 500, l: 6} ],
+			[ { t: 600, l: 6} ]
 		]
 	}
 
 	keyboard.startSong(music);
-
 	setInterval(loop, config.loopInterval);
+	//Temporary random notes generator
+	setInterval(function(){
+		const notes = keyboard.playingMusic.notes;
+		const randomRange = 300; 
+		notes[Math.floor(Math.random() * notes.length)].push({t: keyboard.tickCount + Math.random() * randomRange, l: 6});
+	}, 300);
 }
 
 function loop()
