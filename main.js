@@ -1,7 +1,7 @@
 const canvas = document.querySelector("#drawer");
 let keyboard;
 
-const config = 
+const config =
 {
 	loopInterval: 10,
 	canvasSize: Math.min(window.innerHeight, window.innerWidth),
@@ -13,7 +13,7 @@ const config =
 
 document.addEventListener("DOMContentLoaded", main);
 
-function Keyboard(canvas, vecPos, vecSize, tileLines) 
+function Keyboard(canvas, vecPos, vecSize, tileLines)
 {
 	if (canvas != null) {
 		this.canvas = canvas.getContext("2d");
@@ -47,7 +47,7 @@ Keyboard.prototype.draw = function()
  	canvas.fillStyle = config.background;
  	canvas.fillRect(this.vecPos.x, this.vecPos.y, this.vecSize.x, this.vecSize.y);
  	//canvas.clearRect(this.vecPos.x, this.vecPos.y, this.vecSize.x, this.vecSize.y);
-	
+
 	const tileLineWidth = this.vecSize.x / this.tileLines.length;
 	const keyTileHeight = (config.canvasSize / 100) * config.keyTilePercentSize;
 	const keyTileYPos = (this.vecPos.y + this.vecSize.y) - keyTileHeight;
@@ -140,7 +140,7 @@ function main ()
 	canvas.width = config.canvasSize;
 	canvas.height = config.canvasSize;
 	keyboard = new Keyboard(canvas, {x:0, y:0}, {x:canvas.width, y:canvas.height},
-			[ 
+			[
 				{ color:"#f03434", key:"a", isPressed:true, tiles: [] },
 				{ color:"#22a7f0", key:"s", isPressed:true, tiles: [] },
 				{ color:"#2ecc71", key:"d", isPressed:true, tiles: [] },
@@ -148,7 +148,7 @@ function main ()
 				{ color:"#674172", key:"k", isPressed:true, tiles: [] },
 				{ color:"#f9690e", key:"l", isPressed:true, tiles: [] },
 			]);
-	const music = 
+	const music =
 	{
 		notes: [
 			[ { t: 100, l: 6} ],
@@ -165,7 +165,7 @@ function main ()
 	//Temporary random notes generator
 	setInterval(function(){
 		const notes = keyboard.playingMusic.notes;
-		const randomRange = 300; 
+		const randomRange = 300;
 		notes[Math.floor(Math.random() * notes.length)].push({t: keyboard.tickCount + Math.random() * randomRange, l: 6});
 	}, 300);
 }
@@ -175,7 +175,7 @@ function loop()
 	keyboard.tick();
 }
 
-function switchRemove(arr, index) 
+function switchRemove(arr, index)
 {
 	this[index] = arr[arr.length - 1];
 	arr.pop();
