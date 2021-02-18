@@ -161,7 +161,7 @@ function main ()
 	}
 
 	keyboard.startSong(music);
-	setInterval(loop, config.loopInterval);
+	window.requestAnimationFrame(frameUpdate);
 	//Temporary random notes generator
 	setInterval(function(){
 		const notes = keyboard.playingMusic.notes;
@@ -170,9 +170,10 @@ function main ()
 	}, 300);
 }
 
-function loop()
+function frameUpdate(mil)
 {
 	keyboard.tick();
+	window.requestAnimationFrame(frameUpdate);
 }
 
 function switchRemove(arr, index)
