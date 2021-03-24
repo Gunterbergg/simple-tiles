@@ -38,16 +38,16 @@ Keyboard.prototype.draw = function()
 	const keyTileYPos = (this.vecPos.y + this.vecSize.y) - this.keyTileSize;
 	const keyBaseline = "middle";
 
-	for(let i = 0, linesLength = this.tileLines.length; i < linesLength; i++){
-		const tileLine = this.tileLines[i];
-		const keyTileXPos = i * this.keyTileSize;
+	for(let tileLineIndex = 0, linesLength = this.tileLines.length; tileLineIndex < linesLength; tileLineIndex++){
+		const tileLine = this.tileLines[tileLineIndex];
+		const keyTileXPos = tileLineIndex * this.keyTileSize;
 
 		//Draw background
 	 	canvas.fillStyle = tileLine.backgroundColor;
 	 	canvas.fillRect(keyTileXPos, this.vecPos.y, this.keyTileSize, this.vecSize.y);
+
 		//Draw pressed keyTiles
-		if (tileLine.isPressed) {
-			const pressedGradient = 
+		if (tileLine.isPressed) {const pressedGradient =
 				canvas.createLinearGradient(
 					keyTileXPos + this.keyTileSize / 2,
 					this.vecPos.y,
@@ -65,14 +65,18 @@ Keyboard.prototype.draw = function()
 
 		//Draw tiles
 		canvas.fillStyle = tileLine.color;
-		for (let tile of tileLine.tiles)
-			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - tile.l, this.keyTileSize, tile.l);			
+		for (let tileIndex = tileLine.lastTileIndex; tileIndex < tileLine.firstTileIndex; tileIndex++) {
+			const tile = this.playingMusic.tiles[tileLineIndex][tileIndex];
+			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - tile.l, this.keyTileSize, tile.l);
+		}
 
 		//Draw press gaps
 		canvas.fillStyle = tileLine.pressGapColor;
-		for (let tile of tileLine.tiles)
+		for (let tileIndex = tileLine.lastTileIndex; tileIndex < tileLine.firstTileIndex; tileIndex++) {
+			const tile = this.playingMusic.tiles[tileLineIndex][tileIndex];
 			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - this.tilePressGap, this.keyTileSize, this.tilePressGap);			
-		
+		}
+
 		//Draw keyTiles
 		canvas.fillStyle = tileLine.isPressed ? tileLine.pressedColor : tileLine.color;
 		canvas.fillRect(keyTileXPos, keyTileYPos, this.keyTileSize, this.keyTileSize);
@@ -107,32 +111,44 @@ Keyboard.prototype.onKeyUp = function(event)
 
 Keyboard.prototype.songTick = function(music)
 {
-	for(let lineIndex = 0, linesLength = this.playingMusic.notes.length; lineIndex < linesLength; lineIndex++){
-		const tileLine = this.tileLines[lineIndex].tiles;
-		for(let tileIndex = 0, tilesLength = this.playingMusic.notes[lineIndex].length; tileIndex < tilesLength; tileIndex++){
-			const tile = this.playingMusic.notes[lineIndex][tileIndex];
-			const tilePos = this.tickCount - tile.t;
+	for (let lineIndex = 0, tileLinesLength = this.tileLines.length; lineIndex < tileLinesLength; lineIndex++) {
+		const keyboardTileLine = this.tileLines[lineIndex];
+		const musicTiles = this.playingMusic.tiles[lineIndex];
 
-			if (!tileLine.includes(tile)) {
-				if (tilePos < 0 || tilePos > this.vecSize.y) continue;
-				tileLine.push(tile);
-			}
-			if (tilePos > this.vecSize.y) {
-				switchRemove(tileLine, tileIndex);
-				continue;
-			}
+		let nextTile = musicTiles[keyboardTileLine.firstTileIndex];
+		while (keyboardTileLine.firstTileIndex < musicTiles.length) {
+		 	let tilePosition = this.tickCount - nextTile.t;
+		 	if (tilePosition > 0) {
+		 		keyboardTileLine.firstTileIndex = Math.min(musicTiles.length, keyboardTileLine.firstTileIndex+1);
+				nextTile = musicTiles[keyboardTileLine.firstTileIndex];
+		 	} else break;
+		}
+
+		let lastTile = musicTiles[keyboardTileLine.lastTileIndex];
+		while (keyboardTileLine.lastTileIndex < musicTiles.length) {
+		 	let tilePosition = this.tickCount - lastTile.t - lastTile.l;
+		 	if (tilePosition > this.vecSize.y) {
+		 		keyboardTileLine.lastTileIndex++;
+		 		lastTile = musicTiles[keyboardTileLine.lastTileIndex];
+		 	} else break;
 		}
 	}
 };
 
 Keyboard.prototype.startSong = function(music)
-{ 
-	this.keyTileSize = Math.min(Math.max(window.innerWidth / music.notes.length, 20), 40);
-	this.vecSize.x = this.keyTileSize * music.notes.length;
+{
+	//Setup for musics with multiple 
+	this.keyTileSize = Math.min(Math.max(window.innerWidth / music.tiles.length, 20), 40);
+	this.vecSize.x = this.keyTileSize * music.tiles.length;
 	this.vecSize.y = window.innerHeight;
 	this.canvasElement.width = this.vecSize.x;
 	this.canvasElement.height = this.vecSize.y;
 	this.playingMusic = music;
+
+	//Setup for performance
+	//TODO sort each tile list of playing music
+	this.tileLines.forEach((tileLine) => { tileLine.firstTileIndex = 0; tileLine.lastTileIndex = 0;});
+
 	window.requestAnimationFrame(this.tick.bind(this));
 };
 
@@ -141,16 +157,16 @@ function main ()
 {
 	keyboard = new Keyboard(canvas, {x:0, y:0}, {x:canvas.width, y:canvas.height},
 			[
-				{ color:"#f03434", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#f8adad", pressGapColor:"#f8adad", pressedGradient:["#f8adad00","#f8adadff"], key:"a", isPressed:false, tiles: [] },
-				{ color:"#22a7f0", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#a6dbf8", pressGapColor:"#a6dbf8", pressedGradient:["#a6dbf800","#a6dbf8ff"], key:"s", isPressed:false, tiles: [] },
-				{ color:"#2ecc71", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#aaebc6", pressGapColor:"#aaebc6", pressedGradient:["#aaebc600","#aaebc6ff"], key:"d", isPressed:false, tiles: [] },
-				{ color:"#f5e653", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#fbf5ba", pressGapColor:"#fbf5ba", pressedGradient:["#fbf5ba00","#fbf5baff"], key:"j", isPressed:false, tiles: [] },
-				{ color:"#674172", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#c6aace", pressGapColor:"#c6aace", pressedGradient:["#c6aace00","#c6aaceff"], key:"k", isPressed:false, tiles: [] },
-				{ color:"#f9690e", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#fcc39e", pressGapColor:"#fcc39e", pressedGradient:["#fcc39e00","#fcc39eff"], key:"l", isPressed:false, tiles: [] }
+				{ color:"#f03434", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#f8adad", pressGapColor:"#f8adad", pressedGradient:["#f8adad00","#f8adadff"], key:"a", isPressed:false },
+				{ color:"#22a7f0", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#a6dbf8", pressGapColor:"#a6dbf8", pressedGradient:["#a6dbf800","#a6dbf8ff"], key:"s", isPressed:false },
+				{ color:"#2ecc71", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#aaebc6", pressGapColor:"#aaebc6", pressedGradient:["#aaebc600","#aaebc6ff"], key:"d", isPressed:false },
+				{ color:"#f5e653", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#fbf5ba", pressGapColor:"#fbf5ba", pressedGradient:["#fbf5ba00","#fbf5baff"], key:"j", isPressed:false },
+				{ color:"#674172", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#c6aace", pressGapColor:"#c6aace", pressedGradient:["#c6aace00","#c6aaceff"], key:"k", isPressed:false },
+				{ color:"#f9690e", keyColor:"#fff", backgroundColor:"#fff", pressedColor:"#fcc39e", pressGapColor:"#fcc39e", pressedGradient:["#fcc39e00","#fcc39eff"], key:"l", isPressed:false }
 			]);
 	const music =
 	{
-		notes: [
+		tiles: [
 			[ { t: 100, l: 100}, { t: 121, l: 100} ],
 			[ { t: 200, l: 100} ],
 			[ { t: 300, l: 200} ],
@@ -161,16 +177,10 @@ function main ()
 	}
 
 	keyboard.startSong(music);
-	//Temporary random notes generator
+	//Temporary random tiles generator
 	/*setInterval(function(){
-		const notes = keyboard.playingMusic.notes;
+		const tiles = keyboard.playingMusic.tiles;
 		const randomRange = 300;
-		notes[Math.floor(Math.random() * notes.length)].push({t: keyboard.tickCount + Math.random() * randomRange, l: 6});
+		tiles[Math.floor(Math.random() * tiles.length)].push({t: keyboard.tickCount + Math.random() * randomRange, l: 6});
 	}, 300);*/
-}
-
-function switchRemove(arr, index)
-{
-	this[index] = arr[arr.length - 1];
-	arr.pop();
 }
