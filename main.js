@@ -67,19 +67,19 @@ Keyboard.prototype.draw = function()
 		canvas.fillStyle = tileLine.color;
 		for (let tileIndex = tileLine.lastTileIndex; tileIndex < tileLine.firstTileIndex; tileIndex++) {
 			const tile = this.playingMusic.tiles[tileLineIndex][tileIndex];
-			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - tile.l, this.keyTileSize, tile.l);
+			canvas.fillRect(keyTileXPos, (this.tickCount - tile.t) - tile.l, this.keyTileSize, tile.l);
 		}
 
 		//Draw press gaps
 		canvas.fillStyle = tileLine.pressGapColor;
 		for (let tileIndex = tileLine.lastTileIndex; tileIndex < tileLine.firstTileIndex; tileIndex++) {
 			const tile = this.playingMusic.tiles[tileLineIndex][tileIndex];
-			canvas.fillRect(keyTileXPos, this.tickCount - tile.t - this.tilePressGap, this.keyTileSize, this.tilePressGap);			
+			canvas.fillRect(keyTileXPos, (this.tickCount - tile.t) - this.tilePressGap, this.keyTileSize, this.tilePressGap);			
 		}
 
 		//Draw keyTiles
-		canvas.fillStyle = tileLine.isPressed ? tileLine.pressedColor : tileLine.color;
-		canvas.fillRect(keyTileXPos, keyTileYPos, this.keyTileSize, this.keyTileSize);
+		//canvas.fillStyle = tileLine.isPressed ? tileLine.pressedColor : tileLine.color;
+		//canvas.fillRect(keyTileXPos, keyTileYPos, this.keyTileSize, this.keyTileSize);
 
 		//Draw keys
 		canvas.fillStyle = tileLine.keyColor;
@@ -130,6 +130,7 @@ Keyboard.prototype.songTick = function(music)
 		 	if (tilePosition > this.vecSize.y) {
 		 		keyboardTileLine.lastTileIndex++;
 		 		lastTile = musicTiles[keyboardTileLine.lastTileIndex];
+		 		debugger;
 		 	} else break;
 		}
 	}
@@ -145,10 +146,12 @@ Keyboard.prototype.startSong = function(music)
 	this.canvasElement.height = this.vecSize.y;
 	this.playingMusic = music;
 
-	//Setup for performance
-	//TODO sort each tile list of playing music
+	//Sort guaranteed needed for tile rendering system
+	this.playingMusic.tiles.forEach((tileLine, index) => {
+		if (index > this.tileLines.length) return;
+		tileLine.sort((tile, otherTile) => tile.t - otherTile.t);
+	});;
 	this.tileLines.forEach((tileLine) => { tileLine.firstTileIndex = 0; tileLine.lastTileIndex = 0;});
-
 	window.requestAnimationFrame(this.tick.bind(this));
 };
 
@@ -167,7 +170,7 @@ function main ()
 	const music =
 	{
 		tiles: [
-			[ { t: 100, l: 100}, { t: 121, l: 100} ],
+			[ { t: 200, l: 100}, { t: 121, l: 100} ],
 			[ { t: 200, l: 100} ],
 			[ { t: 300, l: 200} ],
 			[ { t: 400, l: 300} ],
