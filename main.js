@@ -78,8 +78,8 @@ Keyboard.prototype.draw = function()
 		}
 
 		//Draw keyTiles
-		//canvas.fillStyle = tileLine.isPressed ? tileLine.pressedColor : tileLine.color;
-		//canvas.fillRect(keyTileXPos, keyTileYPos, this.keyTileSize, this.keyTileSize);
+		canvas.fillStyle = tileLine.isPressed ? tileLine.pressedColor : tileLine.color;
+		canvas.fillRect(keyTileXPos, keyTileYPos, this.keyTileSize, this.keyTileSize);
 
 		//Draw keys
 		canvas.fillStyle = tileLine.keyColor;
